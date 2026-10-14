@@ -1,0 +1,29 @@
+version: '3.9'
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: safereport_user
+      POSTGRES_PASSWORD: changeme
+      POSTGRES_DB: safereport_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  backend:
+    build: ./backend
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - ./backend:/app
+      - ./ml:/ml
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://safereport_user:changeme@db:5432/safereport_db
+    depends_on:
+      - db
+
+volumes:
+  pgdata:
